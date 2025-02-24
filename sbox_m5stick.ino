@@ -2,7 +2,6 @@
 #include "BLEDevice.h"
 #include <ArduinoJson.h>
 #include <vector>
-#include "BLEAdvertisedDevice.h"
 
 using namespace std;
 
