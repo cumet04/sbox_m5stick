@@ -4,6 +4,10 @@
 #include <vector>
 #include "BLEAdvertisedDevice.h"
 
+using namespace std;
+
+using RawEntry = pair<array<uint8_t, 31>, array<uint8_t, ESP_BD_ADDR_LEN>>;
+
 void setup()
 {
     M5.begin();
@@ -11,41 +15,36 @@ void setup()
     BLEDevice::init("");
 }
 
-std::vector<std::pair<std::array<uint8_t, 31>, std::array<uint8_t, ESP_BD_ADDR_LEN>>> deviceList;
-
-class ScanCallbacks : public BLEAdvertisedDeviceCallbacks
+class ScanCallback : public BLEAdvertisedDeviceCallbacks
 {
+    vector<RawEntry> deviceList;
+
     void onResult(BLEAdvertisedDevice ad)
     {
-        std::string m = ad.getManufacturerData();
+        string m = ad.getManufacturerData();
 
         bool isSwitchBot = (m[0] == 0x59 && m[1] == 0x00) || (m[0] == 0x69 && m[1] == 0x09);
         if (!isSwitchBot)
             return;
 
         uint8_t *pPayload = ad.getPayload();
-        std::array<uint8_t, 31> payload = {0};
-        std::copy(pPayload, pPayload + ad.getPayloadLength(), payload.begin());
+        array<uint8_t, 31> payload = {0};
+        copy(pPayload, pPayload + ad.getPayloadLength(), payload.begin());
 
         esp_bd_addr_t &pAddress = *ad.getAddress().getNative();
-        std::array<uint8_t, ESP_BD_ADDR_LEN> address = {0};
-        std::copy(pAddress, pAddress + ESP_BD_ADDR_LEN, address.begin());
+        array<uint8_t, ESP_BD_ADDR_LEN> address = {0};
+        copy(pAddress, pAddress + ESP_BD_ADDR_LEN, address.begin());
 
-        deviceList.push_back(std::make_pair(payload, address));
-        // Serial.println(ad.getAddress().toString().c_str());
+        deviceList.push_back(make_pair(payload, address));
     }
 };
 
 void loop()
 {
     BLEScan *pBLEScan = BLEDevice::getScan();
-    pBLEScan->setAdvertisedDeviceCallbacks(new ScanCallbacks());
+    pBLEScan->setAdvertisedDeviceCallbacks(new ScanCallback());
     pBLEScan->setActiveScan(true);
-    // deviceList.clear();
+    pBLEScan->start(3);
     // Serial.println(ESP.getFreeHeap());
-    BLEScanResults foundDevices = pBLEScan->start(30);
-    Serial.print(deviceList.size());
-    Serial.print(", ");
-    Serial.println(ESP.getFreeHeap());
     delay(3000);
 }
