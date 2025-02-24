@@ -16,7 +16,7 @@ void setup()
 
 class ScanCallback : public BLEAdvertisedDeviceCallbacks
 {
-    vector<RawEntry> deviceList;
+    vector<RawEntry> queue;
 
     void onResult(BLEAdvertisedDevice ad)
     {
@@ -34,7 +34,7 @@ class ScanCallback : public BLEAdvertisedDeviceCallbacks
         array<uint8_t, ESP_BD_ADDR_LEN> address = {0};
         copy(pAddress, pAddress + ESP_BD_ADDR_LEN, address.begin());
 
-        deviceList.push_back(make_pair(payload, address));
+        queue.push_back(make_pair(payload, address));
     }
 };
 
